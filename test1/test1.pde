@@ -11,7 +11,7 @@ String portName = "COM6";     // имя порта
 boolean skip = true;
 int fillVal = 0;
 byte[] inBuffer = new byte[20];
-//int[] outBuffer = {0x82, 0xFE, 0xFF, 0x16, 0x00, 0xAA, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0xBB};
+//int[] testBuff = {0x82, 0xFE, 0xFF, 0x16, 0x00, 0xAA, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0xBB};
 int[] outBuffer = {0x82, 0xFE, 0xFF, 0x16, 0x00, 0xAA, 0x00};
 //int[] intBuff = new int [20];
 int count = 0;
@@ -24,7 +24,7 @@ void setup() {
 void draw() {
   background(200);   // заливаем фон
   fill(fillVal);
- // circle(100, 100, 60);
+  // circle(100, 100, 60);
   //parsPKU();
   //parsing();         // парсим
 
@@ -41,18 +41,26 @@ void sendPacket(int key, String data) {
 
 void serialEvent(Serial p) {
   inBuffer = p.readBytes();
-  //  printArray(inBuffer);
   int[] inBuff_int = int(inBuffer);
   int check = crc8(inBuff_int, 9);
-  // printArray(intBuff);
-  // println(temp);
-  byte[] outBuff_byte = byte(outBuffer);
   if (check == 0) {
     float t = cp5.get(Slider.class, "temp").getValue();
     int t_ds = int(t/0.0625);
-    println(t_ds);
-    serial.write(outBuff_byte);
-    serial.write(byte(t_ds) + byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds)+ byte(t_ds));
+    int[] t_arr = new int[20];
+    int j = 0;
+    for (int i = 0; i < 10; i++) {
+      j = i*2;
+      t_arr[j] = t_ds & 0xFF;
+      t_arr[j + 1] = (t_ds >> 8) & 0xFF;
+    }
+    int[] packet = concat(outBuffer, t_arr);
+    int pack_crc = crc8(packet, packet.length);
+    packet = append(packet, pack_crc);
+    serial.write(byte(packet));
+    for (int i = 0; i < packet.length; i++) {
+        print(hex(byte(packet[i])));
+    }
+    print('\n');
   }
 }
 
@@ -83,7 +91,7 @@ int crc8(int[] buffer, int size) {
 }
 
 // функция парсинга, опрашивать в лупе
-void parsing() {
+/*void parsing() {
   // если порт открыт и в буфере что то есть
   if (serial != null && serial.available() > 0) {
     String str = serial.readStringUntil('\n');
@@ -108,7 +116,7 @@ void parsing() {
       }
     }
   }
-}
+} */
 
 // ======= ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ========
 void setupGUI() {
