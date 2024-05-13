@@ -37,7 +37,7 @@ void draw() {
 
 void parsing() {
   while (serial != null && serial.available() > 0) {
-    delay(10);
+    delay(20);
     //inBuffer = serial.readBytes();
     int size = serial.readBytes(inBuffer);
     if (inBuffer != null) {
@@ -45,116 +45,115 @@ void parsing() {
         print(hex(byte(inBuffer[i])));
       }
       print('\n');
+      int[] inBuff_int = int(inBuffer);
+      int check = crc8(inBuff_int, 8);
+      if (check == 0)
+      {
+        if (inBuff_int[1] == DT1)
+        {
+          float t_downLeft = cp5.get(Slider.class, "down-left").getValue();
+          float t_upLeft = cp5.get(Slider.class, "up-left").getValue();
+          float t_downRight = cp5.get(Slider.class, "down-right").getValue();
+          float t_upRight = cp5.get(Slider.class, "up-right").getValue();
+          int t_downLeft_ds = int(t_downLeft/0.0625);
+          int t_upLeft_ds = int(t_upLeft/0.0625);
+          int t_downRight_ds = int(t_downRight/0.0625);
+          int t_upRight_ds = int(t_upRight/0.0625);
+          int[] t_arr = new int[20];
+          //1 датчик
+          t_arr[0] = t_downLeft_ds & 0xFF;
+          t_arr[1] = (t_downLeft_ds >> 8) & 0xFF;
+          //2 датчик
+          t_arr[2] = t_upLeft_ds & 0xFF;
+          t_arr[3] = (t_upLeft_ds >> 8) & 0xFF;
+          //3 датчик
+          t_arr[4] = t_downLeft_ds & 0xFF;
+          t_arr[5] = (t_downLeft_ds >> 8) & 0xFF;
+          //4 датчик
+          t_arr[6] = t_upLeft_ds & 0xFF;
+          t_arr[7] = (t_upLeft_ds >> 8) & 0xFF;
+          //5 датчик
+          t_arr[8] = t_downRight_ds & 0xFF;
+          t_arr[9] = (t_downRight_ds >> 8) & 0xFF;
+          //6 датчик
+          t_arr[10] = t_upRight_ds & 0xFF;
+          t_arr[11] = (t_upRight_ds >> 8) & 0xFF;
+          //7 датчик
+          t_arr[12] = t_downRight_ds & 0xFF;
+          t_arr[13] = (t_downRight_ds >> 8) & 0xFF;
+          //8 датчик
+          t_arr[14] = t_upRight_ds & 0xFF;
+          t_arr[15] = (t_upRight_ds >> 8) & 0xFF;
+          //9 датчик
+          t_arr[16] = 0x140 & 0xFF;
+          t_arr[17] = (0x140 >> 8) & 0xFF;
+          //10 датчик
+          t_arr[18] = 0x140 & 0xFF;
+          t_arr[19] = (0x140 >> 8) & 0xFF;
+          int[] packet = concat(outBuffer, t_arr);
+          packet[1] = 0x10;
+          int pack_crc = crc8(packet, packet.length);
+          packet = append(packet, pack_crc);
+          serial.write(byte(packet));
+          for (int i = 0; i < packet.length; i++) {
+            print(hex(byte(packet[i])));
+          }
+          print('\n');
+        }
+        if (inBuff_int[1] == DT2)
+        {
+          float t_downLeft = cp5.get(Slider.class, "down-left").getValue();
+          float t_upLeft = cp5.get(Slider.class, "up-left").getValue();
+          float t_downRight = cp5.get(Slider.class, "down-right").getValue();
+          float t_upRight = cp5.get(Slider.class, "up-right").getValue();
+          int t_downLeft_ds = int(t_downLeft/0.0625);
+          int t_upLeft_ds = int(t_upLeft/0.0625);
+          int t_downRight_ds = int(t_downRight/0.0625);
+          int t_upRight_ds = int(t_upRight/0.0625);
+          int[] t_arr = new int[20];
+          //1 датчик
+          t_arr[0] = t_downLeft_ds & 0xFF;
+          t_arr[1] = (t_downLeft_ds >> 8) & 0xFF;
+          //2 датчик
+          t_arr[2] = t_upLeft_ds & 0xFF;
+          t_arr[3] = (t_upLeft_ds >> 8) & 0xFF;
+          //3 датчик
+          t_arr[4] = t_downLeft_ds & 0xFF;
+          t_arr[5] = (t_downLeft_ds >> 8) & 0xFF;
+          //4 датчик
+          t_arr[6] = t_upLeft_ds & 0xFF;
+          t_arr[7] = (t_upLeft_ds >> 8) & 0xFF;
+          //5 датчик
+          t_arr[8] = t_downRight_ds & 0xFF;
+          t_arr[9] = (t_downRight_ds >> 8) & 0xFF;
+          //6 датчик
+          t_arr[10] = t_upRight_ds & 0xFF;
+          t_arr[11] = (t_upRight_ds >> 8) & 0xFF;
+          //7 датчик
+          t_arr[12] = t_downRight_ds & 0xFF;
+          t_arr[13] = (t_downRight_ds >> 8) & 0xFF;
+          //8 датчик
+          t_arr[14] = t_upRight_ds & 0xFF;
+          t_arr[15] = (t_upRight_ds >> 8) & 0xFF;
+          //9 датчик
+          t_arr[16] = 0x140 & 0xFF;
+          t_arr[17] = (0x140 >> 8) & 0xFF;
+          //10 датчик
+          t_arr[18] = 0x00;
+          t_arr[19] = 0x80;
+          int[] packet = concat(outBuffer, t_arr);
+          packet[1] = 0x11;
+          int pack_crc = crc8(packet, packet.length);
+          packet = append(packet, pack_crc);
+          serial.write(byte(packet));
+          for (int i = 0; i < packet.length; i++) {
+            print(hex(byte(packet[i])));
+          }
+          print('\n');
+        }
+      }
     }
   }
-
-
-  /*  int check = crc8(inBuff_int, 8);
-   if (check == 0)
-   {
-   if (inBuff_int[1] == DT1)
-   {
-   float t_downLeft = cp5.get(Slider.class, "down-left").getValue();
-   float t_upLeft = cp5.get(Slider.class, "up-left").getValue();
-   float t_downRight = cp5.get(Slider.class, "down-right").getValue();
-   float t_upRight = cp5.get(Slider.class, "up-right").getValue();
-   int t_downLeft_ds = int(t_downLeft/0.0625);
-   int t_upLeft_ds = int(t_upLeft/0.0625);
-   int t_downRight_ds = int(t_downRight/0.0625);
-   int t_upRight_ds = int(t_upRight/0.0625);
-   int[] t_arr = new int[20];
-   //1 датчик
-   t_arr[0] = t_downLeft_ds & 0xFF;
-   t_arr[1] = (t_downLeft_ds >> 8) & 0xFF;
-   //2 датчик
-   t_arr[2] = t_upLeft_ds & 0xFF;
-   t_arr[3] = (t_upLeft_ds >> 8) & 0xFF;
-   //3 датчик
-   t_arr[4] = t_downLeft_ds & 0xFF;
-   t_arr[5] = (t_downLeft_ds >> 8) & 0xFF;
-   //4 датчик
-   t_arr[6] = t_upLeft_ds & 0xFF;
-   t_arr[7] = (t_upLeft_ds >> 8) & 0xFF;
-   //5 датчик
-   t_arr[8] = t_downRight_ds & 0xFF;
-   t_arr[9] = (t_downRight_ds >> 8) & 0xFF;
-   //6 датчик
-   t_arr[10] = t_upRight_ds & 0xFF;
-   t_arr[11] = (t_upRight_ds >> 8) & 0xFF;
-   //7 датчик
-   t_arr[12] = t_downRight_ds & 0xFF;
-   t_arr[13] = (t_downRight_ds >> 8) & 0xFF;
-   //8 датчик
-   t_arr[14] = t_upRight_ds & 0xFF;
-   t_arr[15] = (t_upRight_ds >> 8) & 0xFF;
-   //9 датчик
-   t_arr[16] = 0x140 & 0xFF;
-   t_arr[17] = (0x140 >> 8) & 0xFF;
-   //10 датчик
-   t_arr[18] = 0x140 & 0xFF;
-   t_arr[19] = (0x140 >> 8) & 0xFF;
-   int[] packet = concat(outBuffer, t_arr);
-   packet[1] = 0x10;
-   int pack_crc = crc8(packet, packet.length);
-   packet = append(packet, pack_crc);
-   serial.write(byte(packet));
-   for (int i = 0; i < packet.length; i++) {
-   print(hex(byte(packet[i])));
-   }
-   print('\n');
-   }
-   if (inBuff_int[1] == DT2)
-   {
-   float t_downLeft = cp5.get(Slider.class, "down-left").getValue();
-   float t_upLeft = cp5.get(Slider.class, "up-left").getValue();
-   float t_downRight = cp5.get(Slider.class, "down-right").getValue();
-   float t_upRight = cp5.get(Slider.class, "up-right").getValue();
-   int t_downLeft_ds = int(t_downLeft/0.0625);
-   int t_upLeft_ds = int(t_upLeft/0.0625);
-   int t_downRight_ds = int(t_downRight/0.0625);
-   int t_upRight_ds = int(t_upRight/0.0625);
-   int[] t_arr = new int[20];
-   //1 датчик
-   t_arr[0] = t_downLeft_ds & 0xFF;
-   t_arr[1] = (t_downLeft_ds >> 8) & 0xFF;
-   //2 датчик
-   t_arr[2] = t_upLeft_ds & 0xFF;
-   t_arr[3] = (t_upLeft_ds >> 8) & 0xFF;
-   //3 датчик
-   t_arr[4] = t_downLeft_ds & 0xFF;
-   t_arr[5] = (t_downLeft_ds >> 8) & 0xFF;
-   //4 датчик
-   t_arr[6] = t_upLeft_ds & 0xFF;
-   t_arr[7] = (t_upLeft_ds >> 8) & 0xFF;
-   //5 датчик
-   t_arr[8] = t_downRight_ds & 0xFF;
-   t_arr[9] = (t_downRight_ds >> 8) & 0xFF;
-   //6 датчик
-   t_arr[10] = t_upRight_ds & 0xFF;
-   t_arr[11] = (t_upRight_ds >> 8) & 0xFF;
-   //7 датчик
-   t_arr[12] = t_downRight_ds & 0xFF;
-   t_arr[13] = (t_downRight_ds >> 8) & 0xFF;
-   //8 датчик
-   t_arr[14] = t_upRight_ds & 0xFF;
-   t_arr[15] = (t_upRight_ds >> 8) & 0xFF;
-   //9 датчик
-   t_arr[16] = 0x140 & 0xFF;
-   t_arr[17] = (0x140 >> 8) & 0xFF;
-   //10 датчик
-   t_arr[18] = 0x00;
-   t_arr[19] = 0x80;
-   int[] packet = concat(outBuffer, t_arr);
-   packet[1] = 0x11;
-   int pack_crc = crc8(packet, packet.length);
-   packet = append(packet, pack_crc);
-   serial.write(byte(packet));
-   for (int i = 0; i < packet.length; i++) {
-   print(hex(byte(packet[i])));
-   }
-   print('\n');
-   }
-   }    */
 }
 
 int crc8(int[] buffer, int size) {
