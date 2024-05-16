@@ -11,16 +11,19 @@ String portName = "COM6";     // имя порта
 boolean skip = true;
 int DT1 = 0x10;
 int DT2 = 0x11;
-byte[] inBuffer = new byte[20];
+byte[] inBuffer = new byte[40];
 //int[] testBuff = {0x82, 0xFE, 0xFF, 0x16, 0x00, 0xAA, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0xBB};
 int[] outBuffer = {0x81, 0x10, 0x16, 0x00, 0xAA, 0x00};
 
-Knob RSV1;
-Knob RSV2;
-Knob RSV3;
+Knob RSV1_1;
+Knob RSV1_2;
+Knob RSV2_1;
+Knob RSV2_2;
+Knob RSV3_1;
+Knob RSV3_2;
 
 void setup() {
-  size(500, 400);    // размер окна
+  size(1000, 400);    // размер окна
   setupGUI();        // инициализация интерфейса
 }
 
@@ -160,10 +163,22 @@ void speed_reg(int[] rx_buff, int size) {
   int check = modbusCRC16(rx_buff, size);
   if(check == 0)
   {
-    println("Modbus crc correct");
-    //if(rxbuff[0])
+    if(rx_buff[0] == 1)
+    {
+      if(rx_buff[3] == 1) RSV1_1.setValue(rx_buff[5]);
+      if(rx_buff[3] == 2) RSV1_2.setValue(rx_buff[5]);
+    }
+    if(rx_buff[0] == 2)
+    {
+      if(rx_buff[3] == 1) RSV2_1.setValue(rx_buff[5]);
+      if(rx_buff[3] == 2) RSV2_2.setValue(rx_buff[5]);
+    }
+    if(rx_buff[0] == 3)
+    {
+      if(rx_buff[3] == 1) RSV3_1.setValue(rx_buff[5]);
+      if(rx_buff[3] == 2) RSV3_2.setValue(rx_buff[5]);
+    }    
   }
-  
 }
 
 int modbusCRC16(int[] data, int size) {
@@ -198,80 +213,74 @@ int crc8(int[] buffer, int size) {
   return crc;
 }
 
-// функция парсинга, опрашивать в лупе
-/*void parsing() {
- // если порт открыт и в буфере что то есть
- if (serial != null && serial.available() > 0) {
- String str = serial.readStringUntil('\n');
- if (str != null)
- {
- 
- String data[] = str.trim().split(",");
- //int[] data = int(split(str, ','));  // парсить можно сразу в int[]!
- if (skip) {
- skip = false;
- return;  // пропускаем первый пакет
- }
- println(str);
- switch (int(data[0])) {  // свитч по ключу
- case 0:
- fillVal = int(data[1]);
- break;
- case 1:
- break;
- case 2:
- break;
- }
- }
- }
- } */
-
 // ======= ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ========
 void setupGUI() {
   cp5 = new ControlP5(this);
   cp5.setFont(createFont("Calibri", 16));  // сделаем шрифт побольше
 
+int x = 300;
+
   cp5.addSlider("up-left")
-    .setPosition(50, 110)
+    .setPosition(x, 90)
     .setSize(20, 100)
     .setRange(20, 40)
     ;
 
   cp5.addSlider("down-left")
-    .setPosition(150, 110)
+    .setPosition(x + 100, 90)
     .setSize(20, 100)
     .setRange(20, 40)
     ;
 
   cp5.addSlider("up-right")
-    .setPosition(250, 110)
+    .setPosition(x + 100*2, 90)
     .setSize(20, 100)
     .setRange(20, 40)
     ;
 
   cp5.addSlider("down-right")
-    .setPosition(350, 110)
+    .setPosition(x + 100*3, 90)
     .setSize(20, 100)
     .setRange(20, 40)
     ;
 
-  RSV1 = cp5.addKnob("RSV1")
+  RSV1_1 = cp5.addKnob("RSV1_1")
                .setRange(0,100)
                .setPosition(50, 270)
                .setRadius(50)
                .setDragDirection(Knob.VERTICAL)
                ;
                
-  RSV2 = cp5.addKnob("RSV2")
+  RSV1_2 = cp5.addKnob("RSV1_2")
                .setRange(0,100)
-               .setPosition(350, 270)
+               .setPosition(200, 270)
                .setRadius(50)
                .setDragDirection(Knob.VERTICAL)
                ;                  
                
-  RSV3 = cp5.addKnob("RSV3")
+  RSV2_1 = cp5.addKnob("RSV2_1")
                .setRange(0,100)
-               .setPosition(200, 250)
+               .setPosition(650, 270)
+               .setRadius(50)
+               .setDragDirection(Knob.VERTICAL)
+               ;              
+  RSV2_2 = cp5.addKnob("RSV2_2")
+               .setRange(0,100)
+               .setPosition(800, 270)
+               .setRadius(50)
+               .setDragDirection(Knob.VERTICAL)
+               ;
+               
+  RSV3_1 = cp5.addKnob("RSV3_1")
+               .setRange(0,100)
+               .setPosition(350, 250)
+               .setRadius(50)
+               .setDragDirection(Knob.VERTICAL)
+               ;                  
+               
+  RSV3_2 = cp5.addKnob("RSV3_2")
+               .setRange(0,100)
+               .setPosition(500, 250)
                .setRadius(50)
                .setDragDirection(Knob.VERTICAL)
                ;              
