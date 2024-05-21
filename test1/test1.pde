@@ -30,7 +30,6 @@ void setup() {
 void draw() {
   background(200);   // заливаем фон
   parsing();         // парсим
-
 }
 
 void parsing() {
@@ -40,7 +39,7 @@ void parsing() {
     int size = serial.readBytes(inBuffer);
     if (inBuffer != null) {
       for (int i = 0; i < size; i++) {
-        print(hex(byte(inBuffer[i])));
+        print(hex(inBuffer[i]));
       }
       print('\n');
       int[] inBuff_int = int(inBuffer);
@@ -161,45 +160,62 @@ void temp_sensors(int[] rx_buff, int size) {
 
 void speed_reg(int[] rx_buff, int size) {
   int check = modbusCRC16(rx_buff, size);
-  if(check == 0)
+  if (check == 0)
   {
-    if(rx_buff[0] == 1)
+    if(rx_buff[1] == 6)
     {
-      if(rx_buff[3] == 1) RSV1_1.setValue(rx_buff[5]);
-      if(rx_buff[3] == 2) RSV1_2.setValue(rx_buff[5]);
+      if (rx_buff[0] == 1)
+      {
+        if (rx_buff[3] == 1) RSV1_1.setValue(rx_buff[5]);            
+        if (rx_buff[3] == 2) RSV1_2.setValue(rx_buff[5]);
+      }
+      if (rx_buff[0] == 2)
+      {
+        if (rx_buff[3] == 1) RSV2_1.setValue(rx_buff[5]);
+        if (rx_buff[3] == 2) RSV2_2.setValue(rx_buff[5]);
+      }
+      if (rx_buff[0] == 3)
+      {
+        if (rx_buff[3] == 1) RSV3_1.setValue(rx_buff[5]);
+        if (rx_buff[3] == 2) RSV3_2.setValue(rx_buff[5]);
+      }
+      serial.write(byte(rx_buff));
+      printPacket(rx_buff, size);
     }
-    if(rx_buff[0] == 2)
+    if(rx_buff[1] == 3)
     {
-      if(rx_buff[3] == 1) RSV2_1.setValue(rx_buff[5]);
-      if(rx_buff[3] == 2) RSV2_2.setValue(rx_buff[5]);
+      ;
     }
-    if(rx_buff[0] == 3)
-    {
-      if(rx_buff[3] == 1) RSV3_1.setValue(rx_buff[5]);
-      if(rx_buff[3] == 2) RSV3_2.setValue(rx_buff[5]);
-    }    
   }
+}
+
+void printPacket(int[] pack, int size)
+{
+  for (int i = 0; i < size; i++) {
+    print(hex(byte(pack[i])));
+  }
+  print('\n');
 }
 
 int modbusCRC16(int[] data, int size) {
   int i, n;
   int crc = 0xffff;
-  for(i = 0; i <= size; i++)
+  for (i = 0; i <= size; i++)
   {
     crc ^= data[i];
-    for(n = 0; n < 8; n++)
-    crc = ((crc & 0x0001) > 0)?((crc >> 1)^0xa001):(crc >> 1);
+    for (n = 0; n < 8; n++)
+      crc = ((crc & 0x0001) > 0)?((crc >> 1)^0xa001):(crc >> 1);
   }
   return SwapByte(crc);
 }
 
 int SwapByte(int data_int)
-  {
+{
   int byte_lo, byte_hi;
   byte_hi = (data_int & 0x00FF);
   byte_lo = (data_int >> 8);
   return ((byte_hi<<8)|byte_lo);
-  }
+}
 
 int crc8(int[] buffer, int size) {
   int crc = 0;
@@ -218,7 +234,7 @@ void setupGUI() {
   cp5 = new ControlP5(this);
   cp5.setFont(createFont("Calibri", 16));  // сделаем шрифт побольше
 
-int x = 300;
+  int x = 300;
 
   cp5.addSlider("up-left")
     .setPosition(x, 90)
@@ -245,45 +261,45 @@ int x = 300;
     ;
 
   RSV1_1 = cp5.addKnob("RSV1_1")
-               .setRange(0,100)
-               .setPosition(50, 270)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;
-               
+    .setRange(0, 100)
+    .setPosition(50, 270)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
+
   RSV1_2 = cp5.addKnob("RSV1_2")
-               .setRange(0,100)
-               .setPosition(200, 270)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;                  
-               
+    .setRange(0, 100)
+    .setPosition(200, 270)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
+
   RSV2_1 = cp5.addKnob("RSV2_1")
-               .setRange(0,100)
-               .setPosition(650, 270)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;              
+    .setRange(0, 100)
+    .setPosition(650, 270)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
   RSV2_2 = cp5.addKnob("RSV2_2")
-               .setRange(0,100)
-               .setPosition(800, 270)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;
-               
+    .setRange(0, 100)
+    .setPosition(800, 270)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
+
   RSV3_1 = cp5.addKnob("RSV3_1")
-               .setRange(0,100)
-               .setPosition(350, 250)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;                  
-               
+    .setRange(0, 100)
+    .setPosition(350, 250)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
+
   RSV3_2 = cp5.addKnob("RSV3_2")
-               .setRange(0,100)
-               .setPosition(500, 250)
-               .setRadius(50)
-               .setDragDirection(Knob.VERTICAL)
-               ;              
+    .setRange(0, 100)
+    .setPosition(500, 250)
+    .setRadius(50)
+    .setDragDirection(Knob.VERTICAL)
+    ;
 
   // выпадающий список
   cp5.addScrollableList("com")
