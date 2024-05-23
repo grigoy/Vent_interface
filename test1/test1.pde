@@ -22,6 +22,12 @@ Knob RSV2_2;
 Knob RSV3_1;
 Knob RSV3_2;
 
+CheckBox RSV1_check;
+//CheckBox RSV2_check;
+//CheckBox RSV3_check;
+
+int statusByte_1 = 0;
+
 void setup() {
   size(1000, 400);    // размер окна
   setupGUI();        // инициализация интерфейса
@@ -162,30 +168,69 @@ void speed_reg(int[] rx_buff, int size) {
   int check = modbusCRC16(rx_buff, size);
   if (check == 0)
   {
-    if(rx_buff[1] == 6)
+    int[] tx_buff = new int[20];
+    if (rx_buff[0] == 1)
     {
-      if (rx_buff[0] == 1)
-      {
+      if(rx_buff[1] == 6)
+      {        
         if (rx_buff[3] == 1) RSV1_1.setValue(rx_buff[5]);            
         if (rx_buff[3] == 2) RSV1_2.setValue(rx_buff[5]);
+        sendPacket(rx_buff, size);
+        printPacket(rx_buff, size);        
       }
-      if (rx_buff[0] == 2)
+      if(rx_buff[1] == 3)
       {
+        if(rx_buff[3] == 6 && rx_buff[5] == 1)
+        {
+          int i = 0;
+          tx_buff[i++] = rx_buff[0];
+          tx_buff[i++] = rx_buff[1];
+          tx_buff[i++] = 2;
+          tx_buff[i++] = 0;
+          tx_buff[i++] = statusByte_1;
+          int crc_tx = modbusCRC16(tx_buff, i - 1);
+          tx_buff[i++] = 0xFF & (crc_tx >> 8);
+          tx_buff[i++] = 0xFF & crc_tx;
+          sendPacket(tx_buff, i);
+          printPacket(tx_buff, i);
+        }
+      }
+    }
+    if (rx_buff[0] == 2)
+    {
+      if(rx_buff[1] == 6)
+      {    
         if (rx_buff[3] == 1) RSV2_1.setValue(rx_buff[5]);
         if (rx_buff[3] == 2) RSV2_2.setValue(rx_buff[5]);
+        sendPacket(rx_buff, size);
+        printPacket(rx_buff, size);
       }
-      if (rx_buff[0] == 3)
+      if(rx_buff[1] == 3)
       {
+        ;
+      }
+    }
+    if (rx_buff[0] == 3)
+    {
+      if(rx_buff[1] == 6)
+      {      
         if (rx_buff[3] == 1) RSV3_1.setValue(rx_buff[5]);
         if (rx_buff[3] == 2) RSV3_2.setValue(rx_buff[5]);
+        sendPacket(rx_buff, size);
+        printPacket(rx_buff, size);
       }
-      serial.write(byte(rx_buff));
-      printPacket(rx_buff, size);
+      if(rx_buff[1] == 3)
+      {
+        ;
+      }
     }
-    if(rx_buff[1] == 3)
-    {
-      ;
-    }
+  }
+}
+
+void sendPacket(int[] pack, int size)
+{
+  for (int i = 0; i < size; i++) {
+    serial.write(byte(pack[i]));
   }
 }
 
@@ -300,6 +345,42 @@ void setupGUI() {
     .setRadius(50)
     .setDragDirection(Knob.VERTICAL)
     ;
+    
+    RSV1_check = cp5.addCheckBox("RSV1_check")
+              .setPosition(100, 235)
+              .setSize(20, 20)
+              .setItemsPerRow(4)
+              .setSpacingColumn(20)
+              .setSpacingRow(20)
+              .addItem("4", 8)
+              .addItem("3", 4)
+              .addItem("2", 2)
+              .addItem("1", 1)
+              ;
+
+/*    RSV2_check = cp5.addCheckBox("RSV2_check")
+              .setPosition(400, 235)
+              .setSize(20, 20)
+              .setItemsPerRow(4)
+              .setSpacingColumn(20)
+              .setSpacingRow(20)
+              .addItem("5", 8)
+              .addItem("6", 4)
+              .addItem("7", 2)
+              .addItem("8", 1)
+              ;
+              
+    RSV3_check = cp5.addCheckBox("RSV3_check")
+              .setPosition(700, 235)
+              .setSize(20, 20)
+              .setItemsPerRow(4)
+              .setSpacingColumn(20)
+              .setSpacingRow(20)
+              .addItem("4", 8)
+              .addItem("3", 4)
+              .addItem("2", 2)
+              .addItem("1", 1)
+              ;         */     
 
   // выпадающий список
   cp5.addScrollableList("com")
@@ -317,6 +398,21 @@ void setupGUI() {
 }
 
 // ==== ОБРАБОТЧИКИ ИНТЕРФЕЙСА =====
+
+void controlEvent(ControlEvent theEvent) {
+  if (theEvent.isFrom(RSV1_check)) {
+    statusByte_1 = 0;
+    for (int i=0;i<RSV1_check.getArrayValue().length;i++) {
+      int n = (int)RSV1_check.getArrayValue()[i];
+//      print(n);
+      if(n==1) {
+        statusByte_1 += RSV1_check.getItem(i).internalValue();
+      }
+    }
+ //   println();    
+  }
+}
+
 // список портов
 void com(int n) {
   // n = 2; //COM6
