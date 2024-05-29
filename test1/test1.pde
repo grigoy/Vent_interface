@@ -11,10 +11,16 @@ String portName = "COM6";     // имя порта
 boolean skip = true;
 int DT1 = 0x10;
 int DT2 = 0x11;
+int RSV1 = 1;
+int RSV2 = 2;
+int RSV3 = 3;
+int PWR1 = 0;
+int PWR2 = 1;
 byte[] inBuffer = new byte[40];
 //int[] testBuff = {0x82, 0xFE, 0xFF, 0x16, 0x00, 0xAA, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0xBB};
 int[] outBuffer = {0x81, 0x10, 0x16, 0x00, 0xAA, 0x00};
 int[] tx_buff = new int[20];
+int val = 20;
 
 Knob RSV1_1;
 Knob RSV1_2;
@@ -51,7 +57,7 @@ void parsing() {
       print('\n');
       int[] inBuff_int = int(inBuffer);
       temp_sensors(inBuff_int, size);
-      speed_reg(inBuff_int, size);
+      //speed_reg(inBuff_int, size);
     }
   }
 }
@@ -161,6 +167,7 @@ void temp_sensors(int[] rx_buff, int size) {
         print(hex(byte(packet[i])));
       }
       print('\n');
+      changeSlider();
     }
   }
 }
@@ -169,12 +176,12 @@ void speed_reg(int[] rx_buff, int size) {
   int check = modbusCRC16(rx_buff, size);
   if (check == 0)
   {
-    if (rx_buff[0] == 1)
+    if (rx_buff[0] == RSV1)
     {
       if (rx_buff[1] == 6)
       {
-        if (rx_buff[3] == 1) RSV1_1.setValue(rx_buff[5]);
-        if (rx_buff[3] == 2) RSV1_2.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR1) RSV1_1.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR2) RSV1_2.setValue(rx_buff[5]);
         sendPacket(rx_buff, size);
         printPacket(rx_buff, size);
       }
@@ -183,12 +190,12 @@ void speed_reg(int[] rx_buff, int size) {
         readHoldingReg(rx_buff);
       }
     }
-    if (rx_buff[0] == 2)
+    if (rx_buff[0] == RSV2)
     {
       if (rx_buff[1] == 6)
       {
-        if (rx_buff[3] == 1) RSV2_1.setValue(rx_buff[5]);
-        if (rx_buff[3] == 2) RSV2_2.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR1) RSV2_1.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR2) RSV2_2.setValue(rx_buff[5]);
         sendPacket(rx_buff, size);
         printPacket(rx_buff, size);
       }
@@ -197,12 +204,12 @@ void speed_reg(int[] rx_buff, int size) {
         readHoldingReg(rx_buff);
       }
     }
-    if (rx_buff[0] == 3)
+    if (rx_buff[0] == RSV3)
     {
       if (rx_buff[1] == 6)
       {
-        if (rx_buff[3] == 1) RSV3_1.setValue(rx_buff[5]);
-        if (rx_buff[3] == 2) RSV3_2.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR1) RSV3_1.setValue(rx_buff[5]);
+        if (rx_buff[3] == PWR2) RSV3_2.setValue(rx_buff[5]);
         sendPacket(rx_buff, size);
         printPacket(rx_buff, size);
       }
@@ -288,6 +295,13 @@ int crc8(int[] buffer, int size) {
     }
   }
   return crc;
+}
+
+void changeSlider()
+{
+  cp5.get(Slider.class, "up-left").setValue(val);
+  val += 1;
+  if(val >= 30) val = 20;
 }
 
 // ======= ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА ========
