@@ -5,21 +5,49 @@ Serial serial;
 import controlP5.*;
 ControlP5 cp5;
 String portName = "COM9";     // имя порта
-int[] packet = {0x02, 0x06, 0x00, 0x00, 0x01, 0xA0, 0x08, 0x6E};
-int pollTimer = 0;
+int[] packet = {0x02, 0x06, 0x00, 0x00, 0x01, 0x90, 0x88, 0x05};
+int pollTimer, respTimer;
+byte[] rxBuff = new byte[20];
+int reqCntr = 0, respCntr = 0;
+int MBdelay = 50;
+boolean out = false; 
 
 void setup() {
   size(400, 400);    // размер окна
   setupGUI();        // инициализация интерфейса
+  pollTimer = millis();
 }
 
 void draw() {
   background(200);   // заливаем фон
-/*  if(millis() - pollTimer > 1000);{
-    sendPacket(packet, packet.length);
-    printPacket(packet, packet.length);
-    pollTimer = millis();
-  } */
+  if(serial != null){
+    if(millis() - pollTimer > MBdelay){
+      sendPacket(packet, packet.length);
+      reqCntr++;
+  //    printPacket(packet, packet.length);
+      pollTimer = millis();
+      respTimer = millis();
+      out = true;
+    } 
+    if(reqCntr % 10 == 0 && millis() - pollTimer > MBdelay - 20 && out){
+      println("reqCntr = ", reqCntr, "respCntr = ", respCntr);
+      out = false;
+    }
+  }
+}
+
+void serialEvent(Serial serial) 
+{
+  int size, crc;
+  size = serial.readBytes(rxBuff);
+  crc = modbusCRC16(int(rxBuff), size);
+  if(crc == 0)
+  {
+    println(millis() - respTimer);
+//    println("response");
+//    printPacket(int(rxBuff), size);
+    respCntr++;
+  }
 }
 
 void sendPacket(int[] pack, int size)
@@ -84,6 +112,7 @@ void com(int n) {
 void open() {
   if (portName != null && serial == null) {     // если выбран порт и сейчас он закрыт
     serial = new Serial(this, portName, speed); // открываем portName
+    serial.buffer(8);
   }
 }
 
